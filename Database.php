@@ -31,13 +31,17 @@ class Database {
             $this->db->exec("
                 CREATE TABLE IF NOT EXISTS products (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    product_id INTEGER UNIQUE,
                     offer_id TEXT UNIQUE,
-                    name TEXT,
                     sku INTEGER,
+                    name TEXT,
                     price REAL,
-                    fbo_price REAL,
-                    fbs_price REAL,
+                    marketing_price REAL,
+                    currency_code TEXT,
+                    status TEXT,
+                    status_name TEXT,
                     primary_image TEXT,
+                    images TEXT,
                     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
                 )
             ");
@@ -56,13 +60,15 @@ class Database {
                 CREATE TABLE IF NOT EXISTS stocks (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     product_id INTEGER,
-                    warehouse_name TEXT,
+                    warehouse_id INTEGER,
                     valid_stock_count INTEGER DEFAULT 0,
                     waitingdocs_stock_count INTEGER DEFAULT 0,
                     expiring_stock_count INTEGER DEFAULT 0,
                     defect_stock_count INTEGER DEFAULT 0,
+                    promised_amount INTEGER DEFAULT 0,
                     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                    FOREIGN KEY (product_id) REFERENCES products(id)
+                    FOREIGN KEY (product_id) REFERENCES products(id),
+                    FOREIGN KEY (warehouse_id) REFERENCES warehouses(id)
                 )
             ");
             
@@ -73,14 +79,24 @@ class Database {
                     product_id INTEGER,
                     offer_id TEXT,
                     sku INTEGER,
-                    warehouse_name TEXT,
+                    warehouse_id INTEGER,
                     reserved_amount INTEGER DEFAULT 0,
                     promised_amount INTEGER DEFAULT 0,
                     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                    FOREIGN KEY (product_id) REFERENCES products(id)
+                    FOREIGN KEY (product_id) REFERENCES products(id),
+                    FOREIGN KEY (warehouse_id) REFERENCES warehouses(id)
                 )
             ");
             
+            // Создаем таблицу update_info, если она не существует
+            $this->db->exec("
+                CREATE TABLE IF NOT EXISTS update_info (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    last_update DATETIME,
+                    total_products INTEGER
+                )
+            ");
+
             // Создаем таблицу sales, если она не существует
             $this->db->exec("
                 CREATE TABLE IF NOT EXISTS sales (

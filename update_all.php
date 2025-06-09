@@ -94,7 +94,7 @@ try {
 
     // Обновление остатков (как в stock.php)
     logMessage("Получаем данные об остатках...");
-    $stocks = $ozonApi->getStocks();
+    $stocks = $ozonApi->getWarehouseStocks();
     if (!empty($stocks)) {
         $db->saveStocks($stocks, $transitData);
         logMessage("Данные об остатках успешно сохранены", 'success');
