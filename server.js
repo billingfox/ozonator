@@ -6,6 +6,7 @@ const Database = require('./db');
 const app = express();
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
+app.use(express.static(path.join(__dirname, 'public')));
 
 const api = new OzonApi();
 const db = new Database();
