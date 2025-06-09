@@ -87,8 +87,9 @@ class Database {
 
   getAllProducts() {
     return new Promise((resolve, reject) => {
-      this.db.all('SELECT * FROM products', (err, rows) => {
-        if (err) reject(err); else resolve(rows);
+      this.db.all('SELECT * FROM products ORDER BY id DESC', (err, rows) => {
+        if (err) return reject(err);
+        resolve(rows);
       });
     });
   }
