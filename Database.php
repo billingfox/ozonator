@@ -110,6 +110,30 @@ class Database {
                     FOREIGN KEY (product_id) REFERENCES products(id)
                 )
             ");
+
+            // Таблица акций
+            $this->db->exec("
+                CREATE TABLE IF NOT EXISTS promotions (
+                    id INTEGER PRIMARY KEY,
+                    name TEXT,
+                    type TEXT,
+                    is_participant INTEGER DEFAULT 0,
+                    date_from TEXT,
+                    date_to TEXT,
+                    remove_products INTEGER DEFAULT 0
+                )
+            ");
+
+            // Таблица товаров в акциях
+            $this->db->exec("
+                CREATE TABLE IF NOT EXISTS promotion_products (
+                    promotion_id INTEGER,
+                    product_id INTEGER,
+                    PRIMARY KEY (promotion_id, product_id),
+                    FOREIGN KEY (promotion_id) REFERENCES promotions(id),
+                    FOREIGN KEY (product_id) REFERENCES products(id)
+                )
+            ");
             
         } catch (PDOException $e) {
             die("Ошибка подключения к базе данных: " . $e->getMessage());
@@ -484,5 +508,59 @@ class Database {
         $stmt->execute([$offerId]);
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
         return $result ? $result['id'] : null;
+    }
+
+    /**
+     * Возвращает список акций
+     * @return array
+     */
+    public function getPromotions() {
+        $stmt = $this->db->query("SELECT * FROM promotions ORDER BY id");
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function setPromotionRemoveFlag($promotionId, $flag) {
+        $stmt = $this->db->prepare("UPDATE promotions SET remove_products = ? WHERE id = ?");
+        $stmt->execute([$flag ? 1 : 0, $promotionId]);
+    }
+
+    public function getPromotionsToRemove() {
+        $stmt = $this->db->query("SELECT * FROM promotions WHERE remove_products = 1");
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getPromotionProducts($promotionId) {
+        $stmt = $this->db->prepare(
+            "SELECT p.* FROM promotion_products pp JOIN products p ON pp.product_id = p.id WHERE pp.promotion_id = ?"
+        );
+        $stmt->execute([$promotionId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function removeProductsFromPromotion($promotionId) {
+        $stmt = $this->db->prepare("DELETE FROM promotion_products WHERE promotion_id = ?");
+        return $stmt->execute([$promotionId]);
+    }
+
+    public function addPromotion($data) {
+        $stmt = $this->db->prepare(
+            "INSERT OR REPLACE INTO promotions (id, name, type, is_participant, date_from, date_to, remove_products) VALUES (?, ?, ?, ?, ?, ?, ?)"
+        );
+        $stmt->execute([
+            $data['id'],
+            $data['name'],
+            $data['type'],
+            $data['is_participant'] ?? 0,
+            $data['date_from'] ?? null,
+            $data['date_to'] ?? null,
+            $data['remove_products'] ?? 0
+        ]);
+    }
+
+    public function addPromotionProduct($promotionId, $productId) {
+        $stmt = $this->db->prepare(
+            "INSERT OR IGNORE INTO promotion_products (promotion_id, product_id) VALUES (?, ?)"
+        );
+        $stmt->execute([$promotionId, $productId]);
     }
 } 
