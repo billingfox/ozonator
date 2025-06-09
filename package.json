@@ -1,0 +1,20 @@
+{
+  "name": "ozonator",
+  "version": "1.0.0",
+  "description": "Набор скриптов для работы с API Ozon и хранения информации в SQLite.",
+  "main": "index.js",
+  "scripts": {
+    "test": "node -e \"console.log('tests placeholder')\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "axios": "^1.9.0",
+    "dotenv": "^16.5.0",
+    "ejs": "^3.1.10",
+    "express": "^5.1.0",
+    "sqlite3": "^5.1.7"
+  }
+}
